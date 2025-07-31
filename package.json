@@ -1,0 +1,12 @@
+{
+  "name": "shadowbot",
+  "version": "1.0.0",
+  "description": "Bot WhatsApp via Termux",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0"
+  }
+}
