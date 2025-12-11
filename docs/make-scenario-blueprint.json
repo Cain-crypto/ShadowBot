@@ -1,0 +1,905 @@
+{
+  "name": "Animal Rescue Shorts - Runway Gen-3 to YouTube Automation",
+  "flow": [
+    {
+      "id": 1,
+      "module": "builtin:Schedule",
+      "version": 1,
+      "parameters": {
+        "schedule": {
+          "mode": "daily",
+          "time": "10:00",
+          "timezone": "UTC"
+        }
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "restore": {},
+        "expect": []
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicAggregator",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "date": "{{formatDate(now; \"YYYY-MM-DD\")}}",
+        "execution_id": "{{replace(1.id; \"-\"; \"\")}}",
+        "animal_types": [
+          "golden retriever",
+          "tabby cat",
+          "baby elephant",
+          "German shepherd",
+          "stray kitten",
+          "rescue horse",
+          "injured bird",
+          "dolphin"
+        ],
+        "scenarios": [
+          "abandoned in a park during a storm",
+          "trapped in a storm drain",
+          "found injured on a highway",
+          "stuck in a well",
+          "caught in a flood",
+          "lost in a forest fire",
+          "rescued from neglect",
+          "saved from dangerous situation"
+        ],
+        "rescue_methods": [
+          "rescued by brave firefighters",
+          "saved by animal shelter volunteers",
+          "helped by wildlife rangers",
+          "assisted by veterinary team",
+          "protected by rescue organization",
+          "aided by compassionate citizens"
+        ],
+        "outcomes": [
+          "now thriving in a loving forever home",
+          "reunited with worried family",
+          "recovering at animal sanctuary",
+          "adopted by caring family",
+          "living happily with new owners",
+          "safe and healthy again"
+        ],
+        "random_animal": "{{get(2.animal_types; floor(random * length(2.animal_types)))}}",
+        "random_scenario": "{{get(2.scenarios; floor(random * length(2.scenarios)))}}",
+        "random_rescue": "{{get(2.rescue_methods; floor(random * length(2.rescue_methods)))}}",
+        "random_outcome": "{{get(2.outcomes; floor(random * length(2.outcomes)))}}",
+        "story_summary": "A {{2.random_animal}} {{2.random_scenario}}, {{2.random_rescue}}, and {{2.random_outcome}}.",
+        "video_prompt": "45-second heartwarming cinematic video: {{2.story_summary}} Professional cinematography, emotional storytelling, warm color grading. Vertical 9:16 format for YouTube Shorts. Emphasize the animal's journey from danger to safety.",
+        "seed_base": "{{parseNumber(replace(2.date; \"-\"; \"\"))}}",
+        "seed_variance": "{{floor(random * 100)}}",
+        "video_seed": "{{mod(2.seed_base * 1337 + 2.seed_variance; 2147483647)}}",
+        "title_variants": [
+          "Heartwarming Dog Rescue",
+          "Saving a Stray Cat",
+          "Baby Elephant Protection",
+          "Wildlife Hero Moment",
+          "Abandoned Pet Finds Home",
+          "Injured Animal Recovery",
+          "Rescue Mission Success",
+          "Animal Shelter Heroes",
+          "Forest Wildlife Rescue",
+          "Street Animal Transformation"
+        ],
+        "video_title": "Animals Rescue Humans - {{get(2.title_variants; floor(random * length(2.title_variants)))}} #Shorts",
+        "video_description": "🐾 {{2.story_summary}}\n\nEvery day, brave rescuers around the world save animals in need. This heartwarming story reminds us of the incredible bond between humans and animals. 🌟\n\n🔔 Subscribe for daily animal rescue stories\n👍 Like if this touched your heart\n💬 Share your own rescue story below\n\n#AnimalRescue #WildlifeHeroes #Shorts #RescueDogs #RescueCats #Heartwarming #AnimalLovers #PetsOfYouTube #DailyShorts #FeelGood #Rescue #Adoption\n\nThis video is AI-generated for awareness and educational purposes about animal welfare and rescue operations.",
+        "video_tags": "animal rescue, wildlife heroes, shorts, rescue dogs, rescue cats, heartwarming, animal lovers, pets, daily shorts, feel good, rescue, adoption, animal welfare"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0,
+          "name": "Data Prep - Story Generator"
+        },
+        "restore": {},
+        "expect": []
+      }
+    },
+    {
+      "id": 3,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false,
+        "useNewZLibDeCompress": true
+      },
+      "mapper": {
+        "url": "https://api.runwayml.com/v1/video_generations",
+        "method": "post",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{RUNWAY_API_KEY}}"
+          },
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "timeout": 300000,
+        "shareCookies": false,
+        "ca": "",
+        "rejectUnauthorized": true,
+        "followRedirect": true,
+        "useQuerystring": false,
+        "gzip": true,
+        "useMtls": false,
+        "contentType": "application/json",
+        "body": "{\n  \"model\": \"gen3a_turbo\",\n  \"prompt\": \"{{2.video_prompt}}\",\n  \"duration\": 45,\n  \"ratio\": \"9:16\",\n  \"resolution\": \"720p\",\n  \"style\": \"cinematic\",\n  \"motion_strength\": 0.8,\n  \"seed\": {{2.video_seed}}\n}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0,
+          "name": "Runway Gen-3 - Generate Video"
+        },
+        "restore": {
+          "expect": {
+            "method": {
+              "label": "POST"
+            },
+            "bodyType": {
+              "label": "Raw"
+            },
+            "contentType": {
+              "label": "JSON (application/json)"
+            }
+          }
+        },
+        "expect": [
+          {
+            "name": "url",
+            "type": "url",
+            "label": "URL",
+            "required": true
+          },
+          {
+            "name": "method",
+            "type": "select",
+            "label": "Method",
+            "required": true,
+            "validate": {
+              "enum": ["get", "post", "put", "patch", "delete", "options"]
+            }
+          },
+          {
+            "name": "headers",
+            "spec": [
+              {
+                "name": "name",
+                "type": "text",
+                "label": "Name",
+                "required": true
+              },
+              {
+                "name": "value",
+                "type": "text",
+                "label": "Value"
+              }
+            ],
+            "type": "array",
+            "label": "Headers"
+          },
+          {
+            "name": "body",
+            "type": "text",
+            "label": "Request content"
+          }
+        ],
+        "interface": [
+          {
+            "name": "data",
+            "type": "buffer",
+            "label": "Data"
+          },
+          {
+            "name": "statusCode",
+            "type": "uinteger",
+            "label": "Status code"
+          },
+          {
+            "name": "headers",
+            "spec": [
+              {
+                "name": "name",
+                "type": "text",
+                "label": "Name"
+              },
+              {
+                "name": "value",
+                "type": "text",
+                "label": "Value"
+              }
+            ],
+            "type": "array",
+            "label": "Headers"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "module": "builtin:Sleep",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "delay": 120
+      },
+      "metadata": {
+        "designer": {
+          "x": 900,
+          "y": 0,
+          "name": "Initial Wait - 2 minutes"
+        },
+        "restore": {},
+        "expect": [
+          {
+            "name": "delay",
+            "type": "number",
+            "label": "Delay",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "module": "builtin:Repeater",
+      "version": 1,
+      "parameters": {
+        "repeats": 10
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 1200,
+          "y": 0,
+          "name": "Status Check Repeater"
+        },
+        "restore": {},
+        "expect": []
+      }
+    },
+    {
+      "id": 6,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false,
+        "useNewZLibDeCompress": true
+      },
+      "mapper": {
+        "url": "https://api.runwayml.com/v1/video_generations/{{parseJSON(3.data).id}}",
+        "method": "get",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{RUNWAY_API_KEY}}"
+          },
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "timeout": 300000,
+        "shareCookies": false,
+        "ca": "",
+        "rejectUnauthorized": true,
+        "followRedirect": true,
+        "useQuerystring": false,
+        "gzip": true,
+        "useMtls": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 1500,
+          "y": 0,
+          "name": "Check Generation Status"
+        },
+        "restore": {
+          "expect": {
+            "method": {
+              "label": "GET"
+            }
+          }
+        },
+        "expect": [
+          {
+            "name": "url",
+            "type": "url",
+            "label": "URL",
+            "required": true
+          },
+          {
+            "name": "method",
+            "type": "select",
+            "label": "Method",
+            "required": true
+          }
+        ],
+        "interface": [
+          {
+            "name": "data",
+            "type": "buffer",
+            "label": "Data"
+          },
+          {
+            "name": "statusCode",
+            "type": "uinteger",
+            "label": "Status code"
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "module": "builtin:Router",
+      "version": 1,
+      "parameters": {},
+      "mapper": null,
+      "metadata": {
+        "designer": {
+          "x": 1800,
+          "y": 0,
+          "name": "Status Router"
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 8,
+              "module": "builtin:Sleep",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "delay": 60
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2100,
+                  "y": -150,
+                  "name": "Wait 60s - Continue Polling"
+                },
+                "restore": {},
+                "expect": [
+                  {
+                    "name": "delay",
+                    "type": "number",
+                    "label": "Delay",
+                    "required": true
+                  }
+                ]
+              }
+            }
+          ],
+          "filter": {
+            "name": "Status = Processing",
+            "conditions": [
+              [
+                {
+                  "a": "{{parseJSON(6.data).status}}",
+                  "b": "processing",
+                  "o": "text:equal"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "flow": [
+            {
+              "id": 9,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+              },
+              "mapper": {
+                "url": "{{parseJSON(6.data).output.url}}",
+                "method": "get",
+                "headers": [],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "timeout": 300000,
+                "shareCookies": false,
+                "ca": "",
+                "rejectUnauthorized": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "gzip": true,
+                "useMtls": false
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2100,
+                  "y": 0,
+                  "name": "Download Video File"
+                },
+                "restore": {
+                  "expect": {
+                    "method": {
+                      "label": "GET"
+                    }
+                  }
+                },
+                "expect": [
+                  {
+                    "name": "url",
+                    "type": "url",
+                    "label": "URL",
+                    "required": true
+                  }
+                ],
+                "interface": [
+                  {
+                    "name": "data",
+                    "type": "buffer",
+                    "label": "Data"
+                  }
+                ]
+              }
+            },
+            {
+              "id": 10,
+              "module": "google-drive:uploadFile",
+              "version": 3,
+              "parameters": {
+                "useNewZLibDeCompress": true
+              },
+              "mapper": {
+                "drive": "{{GOOGLE_DRIVE_ID}}",
+                "folderPath": "/Animal Rescue Shorts/{{2.date}}",
+                "fileName": "rescue_{{2.date}}_{{parseJSON(3.data).id}}.mp4",
+                "data": "{{9.data}}",
+                "convert": false
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2400,
+                  "y": 0,
+                  "name": "Save to Google Drive"
+                },
+                "restore": {
+                  "expect": {
+                    "drive": {
+                      "label": "My Drive"
+                    }
+                  }
+                },
+                "expect": [
+                  {
+                    "name": "drive",
+                    "type": "select",
+                    "label": "Drive",
+                    "required": true
+                  },
+                  {
+                    "name": "folderPath",
+                    "type": "text",
+                    "label": "Folder Path"
+                  },
+                  {
+                    "name": "fileName",
+                    "type": "text",
+                    "label": "File Name",
+                    "required": true
+                  },
+                  {
+                    "name": "data",
+                    "type": "buffer",
+                    "label": "Data",
+                    "required": true
+                  }
+                ],
+                "interface": [
+                  {
+                    "name": "id",
+                    "type": "text",
+                    "label": "File ID"
+                  },
+                  {
+                    "name": "name",
+                    "type": "text",
+                    "label": "File Name"
+                  },
+                  {
+                    "name": "url",
+                    "type": "url",
+                    "label": "Download URL"
+                  }
+                ]
+              }
+            },
+            {
+              "id": 11,
+              "module": "youtube:uploadVideo",
+              "version": 2,
+              "parameters": {},
+              "mapper": {
+                "connection": "{{YOUTUBE_CONNECTION}}",
+                "videoFile": "{{10.url}}",
+                "title": "{{2.video_title}}",
+                "description": "{{2.video_description}}",
+                "tags": "{{split(2.video_tags; \",\")}}",
+                "categoryId": "15",
+                "privacyStatus": "public",
+                "selfDeclaredMadeForKids": false,
+                "notifySubscribers": true,
+                "embeddable": true,
+                "publicStatsViewable": true
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2700,
+                  "y": 0,
+                  "name": "Upload to YouTube Shorts"
+                },
+                "restore": {
+                  "expect": {
+                    "categoryId": {
+                      "label": "Pets & Animals"
+                    },
+                    "privacyStatus": {
+                      "label": "Public"
+                    }
+                  }
+                },
+                "expect": [
+                  {
+                    "name": "connection",
+                    "type": "account",
+                    "label": "Connection",
+                    "required": true
+                  },
+                  {
+                    "name": "videoFile",
+                    "type": "file",
+                    "label": "Video File",
+                    "required": true
+                  },
+                  {
+                    "name": "title",
+                    "type": "text",
+                    "label": "Title",
+                    "required": true
+                  },
+                  {
+                    "name": "description",
+                    "type": "text",
+                    "label": "Description"
+                  },
+                  {
+                    "name": "categoryId",
+                    "type": "select",
+                    "label": "Category"
+                  },
+                  {
+                    "name": "privacyStatus",
+                    "type": "select",
+                    "label": "Privacy Status",
+                    "required": true
+                  }
+                ],
+                "interface": [
+                  {
+                    "name": "id",
+                    "type": "text",
+                    "label": "Video ID"
+                  },
+                  {
+                    "name": "url",
+                    "type": "url",
+                    "label": "Watch URL"
+                  }
+                ]
+              }
+            },
+            {
+              "id": 12,
+              "module": "google-sheets:addRow",
+              "version": 2,
+              "parameters": {},
+              "mapper": {
+                "connection": "{{GOOGLE_SHEETS_CONNECTION}}",
+                "spreadsheetId": "{{SUCCESS_LOG_SPREADSHEET_ID}}",
+                "sheetName": "Success Log",
+                "values": {
+                  "0": "{{2.date}}",
+                  "1": "{{2.execution_id}}",
+                  "2": "{{2.random_animal}}",
+                  "3": "{{parseJSON(3.data).id}}",
+                  "4": "{{11.id}}",
+                  "5": "{{11.url}}",
+                  "6": "success",
+                  "7": "{{formatDate(now; \"HH:mm:ss\")}}",
+                  "8": "{{add(1; 2; 3; 6; 9; 10; 11; 12)}}"
+                },
+                "insertDataOption": "INSERT_ROWS",
+                "valueInputOption": "USER_ENTERED"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3000,
+                  "y": 0,
+                  "name": "Log Success to Google Sheets"
+                },
+                "restore": {
+                  "expect": {
+                    "insertDataOption": {
+                      "label": "Insert rows"
+                    },
+                    "valueInputOption": {
+                      "label": "User entered"
+                    }
+                  }
+                },
+                "expect": [
+                  {
+                    "name": "connection",
+                    "type": "account",
+                    "label": "Connection",
+                    "required": true
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "text",
+                    "label": "Spreadsheet ID",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetName",
+                    "type": "text",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "values",
+                    "type": "array",
+                    "label": "Values",
+                    "required": true
+                  }
+                ]
+              }
+            }
+          ],
+          "filter": {
+            "name": "Status = Completed",
+            "conditions": [
+              [
+                {
+                  "a": "{{parseJSON(6.data).status}}",
+                  "b": "completed",
+                  "o": "text:equal"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "flow": [
+            {
+              "id": 13,
+              "module": "google-sheets:addRow",
+              "version": 2,
+              "parameters": {},
+              "mapper": {
+                "connection": "{{GOOGLE_SHEETS_CONNECTION}}",
+                "spreadsheetId": "{{ERROR_LOG_SPREADSHEET_ID}}",
+                "sheetName": "Error Log",
+                "values": {
+                  "0": "{{2.date}}",
+                  "1": "{{2.execution_id}}",
+                  "2": "Runway Generation",
+                  "3": "{{parseJSON(6.data).status}}",
+                  "4": "{{parseJSON(6.data).error}}",
+                  "5": "{{5.i}}",
+                  "6": "Max retries exhausted",
+                  "7": "{{formatDate(now; \"HH:mm:ss\")}}"
+                },
+                "insertDataOption": "INSERT_ROWS",
+                "valueInputOption": "USER_ENTERED"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2100,
+                  "y": 150,
+                  "name": "Log Error to Google Sheets"
+                },
+                "restore": {
+                  "expect": {
+                    "insertDataOption": {
+                      "label": "Insert rows"
+                    },
+                    "valueInputOption": {
+                      "label": "User entered"
+                    }
+                  }
+                },
+                "expect": [
+                  {
+                    "name": "connection",
+                    "type": "account",
+                    "label": "Connection",
+                    "required": true
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "text",
+                    "label": "Spreadsheet ID",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetName",
+                    "type": "text",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "values",
+                    "type": "array",
+                    "label": "Values",
+                    "required": true
+                  }
+                ]
+              }
+            },
+            {
+              "id": 14,
+              "module": "email:sendEmail",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "connection": "{{EMAIL_CONNECTION}}",
+                "to": "{{ALERT_EMAIL_ADDRESS}}",
+                "subject": "⚠️ Animal Rescue Shorts - Generation Failed {{2.date}}",
+                "text": "Video generation failed for {{2.date}}.\n\nExecution ID: {{2.execution_id}}\nAnimal Type: {{2.random_animal}}\nGeneration ID: {{parseJSON(3.data).id}}\nStatus: {{parseJSON(6.data).status}}\nError: {{parseJSON(6.data).error}}\nAttempts: {{5.i}} of 10\n\nPlease check the error log and retry manually if needed.\n\n- Animal Rescue Shorts Automation",
+                "html": "<h2>⚠️ Video Generation Failed</h2><p><strong>Date:</strong> {{2.date}}<br><strong>Execution ID:</strong> {{2.execution_id}}<br><strong>Animal Type:</strong> {{2.random_animal}}<br><strong>Generation ID:</strong> {{parseJSON(3.data).id}}<br><strong>Status:</strong> {{parseJSON(6.data).status}}<br><strong>Error:</strong> {{parseJSON(6.data).error}}<br><strong>Attempts:</strong> {{5.i}} of 10</p><p>Please check the error log and retry manually if needed.</p>"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 2400,
+                  "y": 150,
+                  "name": "Send Failure Alert Email"
+                },
+                "restore": {},
+                "expect": [
+                  {
+                    "name": "connection",
+                    "type": "account",
+                    "label": "Connection",
+                    "required": true
+                  },
+                  {
+                    "name": "to",
+                    "type": "email",
+                    "label": "To",
+                    "required": true
+                  },
+                  {
+                    "name": "subject",
+                    "type": "text",
+                    "label": "Subject",
+                    "required": true
+                  },
+                  {
+                    "name": "text",
+                    "type": "text",
+                    "label": "Text"
+                  },
+                  {
+                    "name": "html",
+                    "type": "text",
+                    "label": "HTML"
+                  }
+                ]
+              }
+            }
+          ],
+          "filter": {
+            "name": "Status = Failed",
+            "conditions": [
+              [
+                {
+                  "a": "{{parseJSON(6.data).status}}",
+                  "b": "failed",
+                  "o": "text:equal"
+                }
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "sequential": true,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "us1.make.com"
+  },
+  "variables": [
+    {
+      "name": "RUNWAY_API_KEY",
+      "value": "YOUR_RUNWAY_API_KEY_HERE",
+      "description": "Runway Gen-3 API Key from https://app.runway.ml/settings/api"
+    },
+    {
+      "name": "GOOGLE_DRIVE_ID",
+      "value": "YOUR_GOOGLE_DRIVE_ID",
+      "description": "Google Drive ID (typically 'My Drive' or shared drive ID)"
+    },
+    {
+      "name": "YOUTUBE_CONNECTION",
+      "value": "YOUR_YOUTUBE_CONNECTION_NAME",
+      "description": "Name of the YouTube connection created in Make.com"
+    },
+    {
+      "name": "GOOGLE_SHEETS_CONNECTION",
+      "value": "YOUR_GOOGLE_SHEETS_CONNECTION_NAME",
+      "description": "Name of the Google Sheets connection created in Make.com"
+    },
+    {
+      "name": "SUCCESS_LOG_SPREADSHEET_ID",
+      "value": "YOUR_SUCCESS_LOG_SPREADSHEET_ID",
+      "description": "Spreadsheet ID for success logging (from Google Sheets URL)"
+    },
+    {
+      "name": "ERROR_LOG_SPREADSHEET_ID",
+      "value": "YOUR_ERROR_LOG_SPREADSHEET_ID",
+      "description": "Spreadsheet ID for error logging (can be same as success log)"
+    },
+    {
+      "name": "EMAIL_CONNECTION",
+      "value": "YOUR_EMAIL_CONNECTION_NAME",
+      "description": "Email connection for alerts (Gmail, SendGrid, etc.)"
+    },
+    {
+      "name": "ALERT_EMAIL_ADDRESS",
+      "value": "your-email@example.com",
+      "description": "Email address to receive failure alerts"
+    }
+  ],
+  "notes": [
+    {
+      "title": "Setup Instructions",
+      "content": "1. Import this blueprint into Make.com\n2. Replace all variable placeholders with your credentials\n3. Create connections for YouTube, Google Drive, Google Sheets, and Email\n4. Set up Google Sheets with headers: Date, Execution ID, Animal Type, Generation ID, Video ID, YouTube URL, Status, Time, Operations\n5. Test with one manual run before enabling the schedule\n6. Monitor the first few runs to ensure everything works correctly"
+    },
+    {
+      "title": "Operations Budget",
+      "content": "Expected operations per run:\n- Scheduler: 1 op\n- Data Prep: 1 op\n- Runway API Request: 1 op\n- Initial Wait: 0 ops (sleep doesn't count)\n- Status Checks: ~5-10 ops (depending on generation time)\n- Download: 1 op\n- Google Drive: 1 op\n- YouTube Upload: 1 op\n- Logging: 1 op\n\nTotal: ~15-20 ops per successful run\nMonthly (30 days): 450-600 ops (well within 1000/month free tier)"
+    },
+    {
+      "title": "Error Handling",
+      "content": "This scenario includes comprehensive error handling:\n- Status router checks for processing/completed/failed states\n- Repeater allows up to 10 status checks (10 minutes max)\n- Failed generations are logged to Google Sheets\n- Email alerts are sent on failures\n- No automatic retries to avoid operation budget exhaustion\n- Manual intervention required for failures"
+    },
+    {
+      "title": "Optimization Tips",
+      "content": "To reduce operations further:\n1. Increase polling interval from 60s to 90s (reduce status checks)\n2. Use conditional logging (only log on errors)\n3. Batch multiple metrics into single Google Sheets row\n4. Use Data Store instead of Google Sheets (faster, fewer ops)\n5. Disable email alerts if not critical"
+    }
+  ]
+}
